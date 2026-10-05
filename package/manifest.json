@@ -1,0 +1,9 @@
+{
+  "name": "ChatSounds",
+  "version_number": "1.0.1",
+  "website_url": "https://github.com/L1GHTSHAPER/ChatSounds",
+  "description": "Sound notifications for chat messages: separate sound, volume and rules for global chat, local chat and mentions of your name. Built-in, game or your own sounds. Settings window: F9 or /chatsound.",
+  "dependencies": [
+    "BepInEx-BepInExPack-5.4.2305"
+  ]
+}
