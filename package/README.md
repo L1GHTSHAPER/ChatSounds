@@ -1,5 +1,7 @@
 # ChatSounds
 
+![LightShaper](https://raw.githubusercontent.com/L1GHTSHAPER/ChatSounds/main/tools/assets/lightshaper-wordmark.png)
+
 [Source code on GitHub](https://github.com/L1GHTSHAPER/ChatSounds) | [Report an issue](https://github.com/L1GHTSHAPER/ChatSounds/issues) | [Thunderstore](https://thunderstore.io/c/on-together/p/LightShaper/ChatSounds/)
 
 A BepInEx mod for [On Together](https://store.steampowered.com/app/2688490/On_Together/) that plays a sound when a chat message arrives, with separate settings for the **global chat**, the **local chat** and messages that **mention you**.

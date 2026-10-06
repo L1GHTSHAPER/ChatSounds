@@ -34,7 +34,7 @@ namespace ChatSounds
     {
         public const string PluginGuid = "ontogether.chatsounds";
         public const string PluginName = "ChatSounds";
-        public const string PluginVersion = "1.0.1";
+        public const string PluginVersion = "1.0.2";
 
         // The config file is checked this often for edits made in the mod manager while the game is running.
         const float ConfigPollInterval = 1f;
