@@ -6,12 +6,20 @@
 
 A BepInEx mod for [On Together](https://store.steampowered.com/app/2688490/On_Together/) that plays a sound when a chat message arrives, with separate settings for the **global chat**, the **local chat** and messages that **mention you**.
 
+**♥ Enjoying the mod? Leave a like on [Thunderstore](https://thunderstore.io/c/on-together/p/LightShaper/ChatSounds/) and a ⭐ on [GitHub](https://github.com/L1GHTSHAPER/ChatSounds) — it helps the project grow!**
+
+## Settings menu
+
+**F4**, `/chatsound` or the speaker side button open/close settings. Tabs: **General**, **Global chat**, **Local chat**, **Mentions**. General → More options contains game volume and focus rules. Mentions → Keywords lets you edit and apply words. The ♪ button previews the sound.
+
+Cream panels, warm brown text, coral accents, rounded controls and game fonts. Side buttons form one group, show the mod name and the settings hotkey (where available), and move away from visible UI panels. If both edges are blocked, the buttons wait until space becomes available. Existing hotkeys, commands and configuration keys are preserved. Menus scroll on smaller screens; changes save automatically. Where shown, **Apply** saves a field draft. Invalid values keep the saved setting.
+
 ## Features
 
 - Sounds for other players' messages in the global and local chat, plus a separate sound when a message mentions your name or one of your keywords.
 - Each of the three has its own on/off switch, sound, volume, play condition (always / only when you can't see that chat tab / only while the game is in the background) and a cooldown against spam.
 - 8 built-in sounds (Ping, Chime, Bubble, Drop, Marimba, Bell, Soft, Alert), the game's own sound effects and pomodoro bells, or your own `.wav` / `.ogg` / `.mp3` files.
-- In-game settings window (**F9** or `/chatsound`) that plays each sound as you pick it. The same settings are in the mod manager's config editor, and edits made there apply while the game is running.
+- In-game settings window (**F4** or `/chatsound`) that plays each sound as you pick it. The same settings are in the mod manager's config editor, and edits made there apply while the game is running.
 - Optional quiet mode for focus sessions: only mentions make a sound while you focus.
 - Follows the game's Master volume (can be turned off).
 - Only messages that actually appear in your chat make a sound. Your own messages, ignored or muted players and local messages from players too far away stay silent.
@@ -22,8 +30,8 @@ A BepInEx mod for [On Together](https://store.steampowered.com/app/2688490/On_To
 
 | Action | How |
 |---|---|
-| Settings window | **F9** or `/chatsound` |
-| All sounds on / off | **Left Shift + F9**, `/chatsound on`, `/chatsound off` |
+| Settings window | **F4** or `/chatsound` |
+| All sounds on / off | **Left Shift + F4**, `/chatsound on`, `/chatsound off` |
 | One kind on / off | `/chatsound global off`, `/chatsound local on`, `/chatsound mentions off` |
 | Volume | `/chatsound volume 70` (master), `/chatsound volume local 50` |
 | Pick a sound | `/chatsound sound global Chime`, `/chatsound sound mentions file:ding.ogg` |
@@ -64,8 +72,8 @@ Put `.wav`, `.ogg` or `.mp3` files into `BepInEx/config/ChatSounds/`. The folder
 | General | `FollowGameVolume` | `true` | Also scale by the game's Master volume. |
 | General | `QuietDuringFocus` | `false` | During a focus session only mentions make a sound. |
 | General | `Language` | `Auto` | `Auto` (the game's language), `English`, `Russian`. |
-| Hotkeys | `SettingsWindow` | `F9` | Opens / closes the settings window. |
-| Hotkeys | `ToggleSounds` | `F9 + LeftShift` | Turns all chat sounds on / off. |
+| Hotkeys | `SettingsWindow` | `F4` | Opens / closes the settings window. |
+| Hotkeys | `ToggleSounds` | `F4 + LeftShift` | Turns all chat sounds on / off. |
 | Global | `Enabled`, `Sound`, `Volume`, `PlayWhen`, `Cooldown` | `true`, `Ping`, `60`, `Always`, `3` | Global chat. |
 | Local | `Enabled`, `Sound`, `Volume`, `PlayWhen`, `Cooldown` | `true`, `Bubble`, `80`, `Always`, `1` | Local chat (players near you). |
 | Mentions | `Enabled`, `Sound`, `Volume`, `PlayWhen`, `Cooldown` | `true`, `Alert`, `100`, `Always`, `1` | Messages that mention you, in either chat. |
@@ -88,6 +96,12 @@ Put `.wav`, `.ogg` or `.mp3` files into `BepInEx/config/ChatSounds/`. The folder
 
 ## Русский
 
+**♥ Нравится мод? Поставьте лайк на [Thunderstore](https://thunderstore.io/c/on-together/p/LightShaper/ChatSounds/) и ⭐ звезду на [GitHub](https://github.com/L1GHTSHAPER/ChatSounds) — это помогает проекту расти!**
+
+Настройки: **F4**, `/chatsound` или боковая кнопка с динамиком. Вкладки: **Общее**, **Общий чат**, **Локальный чат**, **Упоминания**. «Общее → Дополнительно» содержит игровые уровни громкости и правила фокусировки. В «Упоминаниях» можно ввести и сохранить ключевые слова. Кнопка ♪ проигрывает образец.
+
+Кремовые панели, коричневый текст, коралловые акценты и скруглённые элементы. Боковые кнопки собраны в одну группу; при наведении видны название мода и клавиша настроек, если она есть. Группа избегает видимых игровых панелей; когда места нет, кнопки скрываются до освобождения края. Настройки и прежние клавиши сохранены. Низкие окна прокручиваются, изменения сохраняются автоматически; кнопка «Применить», где она есть, сохраняет введённое значение.
+
 Мод проигрывает звук, когда в чат приходит сообщение. Отдельные настройки есть для **глобального чата**, **локального чата** и **упоминаний** (ваше имя или заданные слова).
 
 **Возможности**
@@ -95,7 +109,7 @@ Put `.wav`, `.ogg` or `.mp3` files into `BepInEx/config/ChatSounds/`. The folder
 - Звук на сообщения других игроков в глобальном и локальном чате и отдельный звук, когда сообщение упоминает вас.
 - У каждого из трёх свои: вкл/выкл, звук, громкость, условие (всегда / только когда вкладка этого чата не видна / только когда игра в фоне) и пауза между звуками, чтобы не было «пулемёта».
 - 8 встроенных звуков, звуки самой игры и колокольчики помодоро, а также свои файлы `.wav` / `.ogg` / `.mp3`.
-- Окно настроек в игре (**F9** или `/chatsound`), звук проигрывается сразу при выборе. Те же настройки доступны в редакторе конфигов мод-менеджера, изменения применяются без перезапуска игры.
+- Окно настроек в игре (**F4** или `/chatsound`), звук проигрывается сразу при выборе. Те же настройки доступны в редакторе конфигов мод-менеджера, изменения применяются без перезапуска игры.
 - Режим «Во время фокуса только упоминания».
 - Учитывается общая громкость игры (можно отключить).
 - Звучат только сообщения, которые действительно появились у вас в чате: свои сообщения, игроки из списка игнора и мьюта и локальные сообщения издалека звука не дают.
@@ -104,7 +118,7 @@ Put `.wav`, `.ogg` or `.mp3` files into `BepInEx/config/ChatSounds/`. The folder
 
 **Управление**
 
-- **F9** или `/chatsound`: окно настроек; **левый Shift + F9**, `/chatsound on|off`: включить или выключить все звуки.
+- **F4** или `/chatsound`: окно настроек; **левый Shift + F4**, `/chatsound on|off`: включить или выключить все звуки.
 - `/chatsound global|local|mentions on|off`: глобальный чат, локальный чат, упоминания.
 - `/chatsound volume 70`: общая громкость; `/chatsound volume local 50`: громкость локального чата.
 - `/chatsound sound global Chime`: выбрать звук; `/chatsound sounds`: список звуков; `/chatsound test`: прослушать.
@@ -115,3 +129,12 @@ Put `.wav`, `.ogg` or `.mp3` files into `BepInEx/config/ChatSounds/`. The folder
 **Свои звуки:** положите файлы в `BepInEx/config/ChatSounds/` (кнопка **Папка звуков** в окне настроек открывает её), нажмите **Обновить** и выберите файл стрелками рядом с названием звука. Файлы лежат в папке конфигов и не пропадают при обновлении мода.
 
 **Настройки:** `BepInEx/config/ontogether.chatsounds.cfg`, таблица выше.
+
+
+Side settings buttons are opaque squares with rounded corners, a dark brown outline and proportionate icons, sized to match the game's right-hand controls. They hide with the native controls in Desktop mode, including tooltips and pointer hit areas.
+
+Боковые кнопки настроек стали непрозрачными и квадратными: скруглённые углы, коричневая обводка и значки без растягивания. Размер соответствует высоте игровых кнопок справа. В Desktop-режиме они скрываются вместе с игровыми; подсказки и области нажатия также отключаются.
+
+Existing default F9 / Left Shift + F9 shortcuts automatically move to F4 / Left Shift + F4 when MovementPlus is installed. Other custom shortcuts are preserved.
+
+При установленном MovementPlus прежние стандартные F9 / левый Shift + F9 автоматически заменяются на F4 / левый Shift + F4. Остальные пользовательские сочетания сохраняются.

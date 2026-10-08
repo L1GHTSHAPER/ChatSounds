@@ -13,8 +13,8 @@ namespace ChatSounds
     internal sealed class SettingsWindow : MonoBehaviour
     {
         const int WindowId = 0x43534E44;
-        const float Width = 470f;
-        const float LabelWidth = 118f;
+        const float Width = 600f;
+        float LabelWidth => Mathf.Clamp((_rect.width - 40f) * .32f, 90f, 170f);
         const float ArrowWidth = 26f;
         const float PlayWidth = 32f;
         const float ValueWidth = 54f;
@@ -25,18 +25,23 @@ namespace ChatSounds
         static readonly GUILayoutOption[] Shrinkable = { GUILayout.MinWidth(40f), GUILayout.ExpandWidth(true) };
 
         UiSkin _skin;
+        GUISkin _guiSkin;
+        WindowInputShield _shield;
+        int _tab, _pendingTab = -1;
+        readonly Vector2[] _tabScrolls = new Vector2[4];
+        bool _advanced, _pendingAdvanced;
+        bool _changeAdvanced;
+        string _keywords;
+        bool _keywordDirty;
         GUI.WindowFunction _drawWindow;
         Rect _rect;
         bool _placed;
         float _screenHeight;
         Vector2 _scroll;
-        float _contentHeight = 600f;
         SoundCategory _pendingPreview;
         float _previewAt;
         // The IMGUI control of this window that holds the mouse (slider or window drag), released on close.
         int _hotControl;
-        GameObject _blockerCanvas;
-        RectTransform _blocker;
 
         public void Toggle()
         {
@@ -48,10 +53,14 @@ namespace ChatSounds
             if (open == enabled)
                 return;
             enabled = open;
+            if (_shield == null) _shield = new WindowInputShield("ChatSounds");
+            _shield.Set(open);
             if (open)
             {
                 Lang.Invalidate();
                 Plugin.Instance.Sounds.Rescan();
+                _keywords = Plugin.Instance.Keywords.Value;
+                _keywordDirty = false;
             }
             else
             {
@@ -64,20 +73,14 @@ namespace ChatSounds
             }
         }
 
-        void OnEnable()
-        {
-            if (_blockerCanvas != null)
-                _blockerCanvas.SetActive(true);
-        }
-
         void OnDisable()
         {
-            if (_blockerCanvas != null)
-                _blockerCanvas.SetActive(false);
+            _shield?.Set(false);
         }
 
         void Update()
         {
+            if (Input.GetKeyDown(KeyCode.Escape)) SetOpen(false);
             if (_pendingPreview != null && Time.unscaledTime >= _previewAt)
             {
                 Plugin.Instance.Preview(_pendingPreview);
@@ -87,16 +90,20 @@ namespace ChatSounds
 
         void OnGUI()
         {
-            if (Plugin.Instance == null)
+            if (UiEnvironment.PreviewRendering || Plugin.Instance == null)
                 return;
             if (_skin == null)
-                _skin = new UiSkin();
+            { _skin = new UiSkin(); _guiSkin = _skin.CreateGuiSkin(GUI.skin); }
             if (_drawWindow == null)
                 _drawWindow = DrawWindow;
 
             // Keep the window the same physical size on high resolutions (laid out for 1080p).
-            float scale = Mathf.Clamp(Screen.height / 1080f, 1f, 3f);
+            float scale = UiEnvironment.Scale;
             Matrix4x4 previousMatrix = GUI.matrix;
+            GUISkin previousSkin = GUI.skin;
+            try
+            {
+            GUI.skin = _guiSkin;
             GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
             float screenWidth = Screen.width / scale;
             _screenHeight = Screen.height / scale;
@@ -106,13 +113,16 @@ namespace ChatSounds
                 _placed = true;
             }
 
-            _rect = GUILayout.Window(WindowId, _rect, _drawWindow, GUIContent.none, _skin.Window, GUILayout.Width(Width));
+            float width = Mathf.Min(Width, screenWidth - 24f);
+            _rect.width = width;
+            _rect = GUILayout.Window(WindowId, _rect, _drawWindow, GUIContent.none, _skin.Window, GUILayout.Width(width));
             _rect.x = Mathf.Clamp(_rect.x, 0f, Mathf.Max(0f, screenWidth - _rect.width));
             _rect.y = Mathf.Clamp(_rect.y, 0f, Mathf.Max(0f, _screenHeight - _rect.height));
-            GUI.matrix = previousMatrix;
+            }
+            finally { GUI.matrix = previousMatrix; GUI.skin = previousSkin; }
 
             if (Event.current.type == EventType.Repaint)
-                UpdateBlocker(scale);
+                _shield?.Place(_rect, scale);
         }
 
         void DrawWindow(int id)
@@ -120,24 +130,42 @@ namespace ChatSounds
             Plugin plugin = Plugin.Instance;
             Lang lang = Lang.Current;
             int hotControlBefore = GUIUtility.hotControl;
+            if (Event.current.type == EventType.Layout)
+            {
+                if (_pendingTab >= 0) { _tabScrolls[_tab] = _scroll; _tab = _pendingTab; _pendingTab = -1; _scroll = _tabScrolls[_tab]; GUI.FocusControl(null); }
+                if (_changeAdvanced) { _advanced = _pendingAdvanced; _changeAdvanced = false; }
+            }
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(lang.Title, _skin.Title);
+            GUILayout.Label("CS", _skin.Logo);
+            GUILayout.BeginVertical();
+            GUILayout.Label("ChatSounds", _skin.Title);
+            GUILayout.Label(UiEnvironment.L("Chat notifications", "Уведомления чата"), _skin.Subtitle);
+            GUILayout.EndVertical();
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("×", _skin.CloseButton))
                 SetOpen(false);
             GUILayout.EndHorizontal();
 
+            GUILayout.Space(8);
+            string[] tabs = { UiEnvironment.L("General", "Общее"), lang.GlobalChat, lang.LocalChat, lang.Mentions };
+            int columns = _rect.width < 480 ? 2 : 4;
+            for (int first = 0; first < 4; first += columns)
+            {
+                GUILayout.BeginHorizontal();
+                for (int i = first; i < first + columns; i++) if (GUILayout.Button(tabs[i], i == _tab ? _skin.SelectedTab : _skin.Tab)) _pendingTab = i;
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.Space(8);
+
             // The settings scroll when the screen is too low for all of them. The few spare pixels cover the first
             // row's margin and rounding, so no scrollbar appears when everything fits.
-            float viewHeight = Mathf.Min(_contentHeight + 4f, Mathf.Max(200f, _screenHeight - 140f));
+            float viewHeight = Mathf.Min(430f, Mathf.Max(80f, _screenHeight - (_rect.width < 480 ? 290f : 250f)));
             _scroll = GUILayout.BeginScrollView(_scroll, false, false, GUI.skin.horizontalScrollbar,
                 GUI.skin.verticalScrollbar, GUIStyle.none, GUILayout.Height(viewHeight));
             GUILayout.BeginVertical();
             DrawSettings(plugin, lang);
             GUILayout.EndVertical();
-            if (Event.current.type == EventType.Repaint)
-                _contentHeight = GUILayoutUtility.GetLastRect().height;
             GUILayout.EndScrollView();
 
             GUILayout.Space(10f);
@@ -154,7 +182,7 @@ namespace ChatSounds
             GUILayout.Label(string.Format(lang.FilesHint, plugin.Sounds.FileCount), _skin.Hint);
             GUILayout.Label(string.Format(lang.WindowHint, plugin.WindowKey.Value, plugin.ToggleKey.Value), _skin.Hint);
 
-            GUI.DragWindow(new Rect(0f, 0f, 10000f, 40f));
+            GUI.DragWindow(new Rect(0f, 0f, _rect.width - 48f, 62f));
 
             // A control in this window took or released the mouse during this event.
             if (GUIUtility.hotControl != hotControlBefore)
@@ -163,12 +191,20 @@ namespace ChatSounds
 
         void DrawSettings(Plugin plugin, Lang lang)
         {
-            ToggleRow(plugin.Enabled, lang.SoundsEnabled);
-            PercentRow(plugin.MasterVolume, lang.MasterVolume, plugin.Global);
-            ToggleRow(plugin.FollowGameVolume, lang.FollowGameVolume);
-            ToggleRow(plugin.QuietDuringFocus, lang.QuietDuringFocus);
-            foreach (SoundCategory category in plugin.Categories)
-                CategoryPanel(plugin, lang, category);
+            if (_tab == 0)
+            {
+                GUILayout.BeginVertical(_skin.Panel);
+                GUILayout.Label(UiEnvironment.L("Notifications", "Уведомления"), _skin.SectionTitle);
+                ToggleRow(plugin.Enabled, lang.SoundsEnabled);
+                PercentRow(plugin.MasterVolume, lang.MasterVolume, plugin.Global);
+                GUILayout.EndVertical();
+                GUILayout.BeginVertical(_skin.Panel);
+                if (GUILayout.Button((_advanced ? "▼ " : "► ") + UiEnvironment.L("More options", "Дополнительно"), _skin.SectionTitle))
+                { _pendingAdvanced = !_advanced; _changeAdvanced = true; }
+                if (_advanced) { ToggleRow(plugin.FollowGameVolume, lang.FollowGameVolume); ToggleRow(plugin.QuietDuringFocus, lang.QuietDuringFocus); }
+                GUILayout.EndVertical();
+            }
+            else CategoryPanel(plugin, lang, _tab == 1 ? plugin.Global : _tab == 2 ? plugin.Local : plugin.Mentions);
         }
 
         void CategoryPanel(Plugin plugin, Lang lang, SoundCategory category)
@@ -201,9 +237,13 @@ namespace ChatSounds
 
             GUILayout.BeginHorizontal(_skin.Row);
             GUILayout.Label(lang.Keywords, _skin.Label, GUILayout.Width(LabelWidth));
-            IList<string> keywords = plugin.KeywordList;
-            GUILayout.Label(keywords.Count > 0 ? MentionMatcher.JoinKeywords(keywords) : lang.None, _skin.ToggleLabel, Shrinkable);
+            string nextKeywords = GUILayout.TextField(_keywords ?? plugin.Keywords.Value, _skin.EditorHex, Shrinkable);
+            if (nextKeywords != _keywords) { _keywords = nextKeywords; _keywordDirty = true; }
             GUILayout.EndHorizontal();
+            bool previousEnabled = GUI.enabled;
+            GUI.enabled = previousEnabled && _keywordDirty;
+            if (GUILayout.Button(UiEnvironment.L("Apply keywords", "Сохранить слова"), _skin.Button)) { plugin.Keywords.Value = _keywords; _keywordDirty = false; }
+            GUI.enabled = previousEnabled;
             GUILayout.Label(lang.KeywordsHint, _skin.Hint);
         }
 
@@ -297,43 +337,12 @@ namespace ChatSounds
             }
         }
 
-        /// <summary>
-        /// An invisible uGUI panel under the window keeps clicks on the window from also reaching game buttons
-        /// behind it (IMGUI does not block uGUI by itself).
-        /// </summary>
-        void UpdateBlocker(float scale)
-        {
-            if (_blocker == null)
-            {
-                if (_blockerCanvas != null)
-                    Destroy(_blockerCanvas);
-                _blockerCanvas = new GameObject("ChatSounds.InputBlocker") { hideFlags = HideFlags.HideAndDontSave };
-                DontDestroyOnLoad(_blockerCanvas);
-                Canvas canvas = _blockerCanvas.AddComponent<Canvas>();
-                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                canvas.sortingOrder = short.MaxValue;
-                _blockerCanvas.AddComponent<GraphicRaycaster>();
-
-                var panel = new GameObject("Blocker", typeof(RectTransform)) { hideFlags = HideFlags.HideAndDontSave };
-                panel.transform.SetParent(_blockerCanvas.transform, false);
-                Image image = panel.AddComponent<Image>();
-                image.color = new Color(0f, 0f, 0f, 0f);
-                image.raycastTarget = true;
-                _blocker = (RectTransform)panel.transform;
-                _blocker.anchorMin = new Vector2(0f, 1f);
-                _blocker.anchorMax = new Vector2(0f, 1f);
-                _blocker.pivot = new Vector2(0f, 1f);
-            }
-            _blocker.anchoredPosition = new Vector2(_rect.x * scale, -_rect.y * scale);
-            _blocker.sizeDelta = new Vector2(_rect.width * scale, _rect.height * scale);
-        }
-
         void OnDestroy()
         {
+            _shield?.Dispose();
+            if (_guiSkin != null) Destroy(_guiSkin);
             if (_skin != null)
                 _skin.Destroy();
-            if (_blockerCanvas != null)
-                Destroy(_blockerCanvas);
         }
     }
 }

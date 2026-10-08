@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.1
+
+- Cream panels, warm brown text, coral accents, rounded controls and game fonts.
+- Grouped square side buttons with brown outlines, proportionate icons and name/hotkey hints. Buttons avoid open panels and hide with game controls in Desktop mode.
+- Responsive settings menus, tabs and collapsible advanced options. Existing configuration keys, commands and English/Russian support are preserved.
+- Input guards keep menu editing and scrolling from moving the player or camera.
+- Updated menu instructions and direct support links for this mod on Thunderstore and GitHub.
+- Settings now use F4 and sounds use Left Shift + F4. With MovementPlus installed, only the old stock F9 / Left Shift + F9 shortcuts migrate; other custom assignments are preserved.
+
 ## 1.0.2
 
 - Updated the package icon and README with the rounded LightShaper logo and black, white and purple visual style.

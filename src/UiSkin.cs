@@ -6,24 +6,24 @@ namespace ChatSounds
     /// <summary>Styles of the settings window. The textures are drawn in code, so the mod ships no image files.</summary>
     internal sealed class UiSkin
     {
-        static readonly Color TextColor = Rgb(0xE6ECF7);
-        static readonly Color LabelColor = Rgb(0xC3CDE0);
-        static readonly Color MutedColor = Rgb(0x8E9AB3);
-        static readonly Color AccentColor = Rgb(0x6AA8FF);
-        static readonly Color AccentHover = Rgb(0x8BBCFF);
-        static readonly Color WindowColor = Rgb(0x171B26, 0.97f);
-        static readonly Color WindowBorder = Rgb(0x313A55);
-        static readonly Color PanelColor = Rgb(0x1E2432);
-        static readonly Color PanelBorder = Rgb(0x2A3248);
-        static readonly Color FieldColor = Rgb(0x131722);
-        static readonly Color ButtonColor = Rgb(0x2A3246);
-        static readonly Color ButtonHover = Rgb(0x35405A);
-        static readonly Color ButtonActive = Rgb(0x405073);
-        static readonly Color ButtonBorder = Rgb(0x3A4560);
-        static readonly Color CheckColor = Rgb(0x131722);
-        static readonly Color CheckBorder = Rgb(0x5A6580);
-        static readonly Color TrackColor = Rgb(0x3A4359);
-        static readonly Color ThumbColor = Rgb(0xD6E4FF);
+        internal static readonly Color TextColor = Rgb(0x534334);
+        static readonly Color LabelColor = Rgb(0x534334);
+        static readonly Color MutedColor = Rgb(0x796B5B);
+        static readonly Color AccentColor = Rgb(0xAB503D);
+        static readonly Color AccentHover = Rgb(0xC16A52);
+        static readonly Color WindowColor = Rgb(0xFFF6E6);
+        static readonly Color WindowBorder = Rgb(0xCDB895);
+        static readonly Color PanelColor = Rgb(0xFFFAF0);
+        static readonly Color PanelBorder = Rgb(0xD7C3A5);
+        static readonly Color FieldColor = Rgb(0xFFF3DD);
+        static readonly Color ButtonColor = Rgb(0xF4E8D2);
+        static readonly Color ButtonHover = Rgb(0xF9DDC8);
+        static readonly Color ButtonActive = Rgb(0xF2CCAF);
+        static readonly Color ButtonBorder = Rgb(0xD7C3A5);
+        static readonly Color CheckColor = Rgb(0xFFFAF0);
+        static readonly Color CheckBorder = Rgb(0xB39E81);
+        static readonly Color TrackColor = Rgb(0xDED1BA);
+        static readonly Color ThumbColor = AccentColor;
 
         public readonly GUIStyle Window;
         public readonly GUIStyle Panel;
@@ -34,26 +34,38 @@ namespace ChatSounds
         public readonly GUIStyle SectionTitle;
         public readonly GUIStyle Value;
         public readonly GUIStyle Field;
+        public readonly GUIStyle EditorInput;
+        public readonly GUIStyle EditorHex;
+        public readonly GUIStyle ColorButton;
         public readonly GUIStyle Hint;
         public readonly GUIStyle Button;
         public readonly GUIStyle SmallButton;
         public readonly GUIStyle CloseButton;
+        public readonly GUIStyle Tab;
+        public readonly GUIStyle SelectedTab;
+        public readonly GUIStyle Subtitle;
+        public readonly GUIStyle Preview;
+        public readonly GUIStyle PreviewPaper;
+        public readonly GUIStyle Logo;
         public readonly GUIStyle Spacer;
         public readonly GUIStyle Check;
         public readonly GUIStyle Slider;
         public readonly GUIStyle Thumb;
+        public readonly GUIStyle Swatch;
+        /// <summary>A plain white pixel, tinted when drawn (colour samples).</summary>
+        public readonly Texture2D White;
 
         readonly List<Texture2D> _textures = new List<Texture2D>();
 
         public UiSkin()
         {
             // The window texture has a 10px drop shadow around the box; overflow draws it outside the window rect.
-            Texture2D window = Box(56, 56, 12f, WindowColor, WindowBorder, 1f, 10);
+            Texture2D window = Box(72, 72, 18f, WindowColor, WindowBorder, 2f, 10);
             Window = new GUIStyle
             {
-                border = new RectOffset(24, 24, 24, 24),
+                border = new RectOffset(30, 30, 30, 30),
                 overflow = new RectOffset(10, 10, 10, 10),
-                padding = new RectOffset(18, 18, 12, 14)
+                padding = new RectOffset(20, 20, 16, 14)
             };
             Window.normal.background = window;
             Window.onNormal.background = window;
@@ -68,19 +80,22 @@ namespace ChatSounds
 
             Row = new GUIStyle { margin = new RectOffset(0, 0, 1, 1) };
 
-            Title = Text(16, TextColor, FontStyle.Bold);
-            Title.fixedHeight = 26f;
+            Title = Text(20, TextColor, FontStyle.Bold);
+            Title.fixedHeight = 28f;
+            Subtitle = Text(12, MutedColor);
+            Subtitle.fixedHeight = 20f;
 
             Label = Text(13, LabelColor);
-            Label.fixedHeight = 24f;
+            Label.wordWrap = true;
+            Label.padding = new RectOffset(0, 0, 4, 4);
 
             // IMGUI uses a state only when it has a background, so hover colours need an (invisible) one.
             Texture2D clear = Make(1, 1, new[] { new Color(0f, 0f, 0f, 0f) });
 
             ToggleLabel = Text(13, TextColor);
-            ToggleLabel.fixedHeight = 24f;
-            ToggleLabel.padding = new RectOffset(8, 0, 0, 0);
-            ToggleLabel.hover.textColor = Color.white;
+            ToggleLabel.wordWrap = true;
+            ToggleLabel.padding = new RectOffset(0, 8, 4, 4);
+            ToggleLabel.hover.textColor = AccentColor;
             ToggleLabel.hover.background = clear;
 
             SectionTitle = Text(14, AccentColor, FontStyle.Bold);
@@ -98,6 +113,12 @@ namespace ChatSounds
             Field.padding = new RectOffset(8, 8, 0, 0);
             Field.margin = new RectOffset(2, 2, 0, 0);
             Field.normal.background = Box(16, 16, 5f, FieldColor, PanelBorder);
+            EditorHex = new GUIStyle(Field) { alignment = TextAnchor.MiddleLeft };
+            EditorInput = new GUIStyle(EditorHex) { fixedHeight = 0f, wordWrap = true, padding = new RectOffset(8, 8, 6, 6) };
+            ColorButton = new GUIStyle { fixedWidth = 18f, fixedHeight = 18f, margin = new RectOffset(6, 2, 3, 3) };
+            ColorButton.normal.background = Make(1, 1, new[] { Color.white });
+            ColorButton.hover.background = ColorButton.normal.background;
+            ColorButton.active.background = ColorButton.normal.background;
 
             Hint = Text(11, MutedColor);
             Hint.wordWrap = true;
@@ -123,6 +144,24 @@ namespace ChatSounds
             SmallButton.stretchWidth = false;
             SetBackgrounds(SmallButton, button, buttonHover, buttonActive);
 
+            Tab = new GUIStyle(Button) { fixedHeight = 34f, stretchWidth = true, fontStyle = FontStyle.Bold,
+                padding = new RectOffset(6, 6, 0, 0), margin = new RectOffset(2, 2, 0, 0) };
+            SelectedTab = new GUIStyle(Tab);
+            SetBackgrounds(SelectedTab, buttonActive, buttonActive, buttonActive);
+            SelectedTab.normal.textColor = AccentColor;
+            SelectedTab.hover.textColor = AccentColor;
+            SelectedTab.active.textColor = AccentColor;
+            Logo = Text(21, AccentColor, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Logo.fixedHeight = 42f;
+            Logo.fixedWidth = 42f;
+            Logo.border = new RectOffset(12, 12, 12, 12);
+            Logo.margin = new RectOffset(0, 10, 0, 0);
+            Logo.normal.background = Box(32, 32, 10f, ButtonHover, ButtonHover);
+            Preview = new GUIStyle(Panel) { margin = new RectOffset(0, 0, 0, 0) };
+            Preview.normal.background = Box(24, 24, 8f, Rgb(0xE4DDC9), PanelBorder);
+            PreviewPaper = new GUIStyle(Preview);
+            PreviewPaper.normal.background = Box(24, 24, 8f, PanelColor, PanelBorder);
+
             CloseButton = Text(18, MutedColor, FontStyle.Normal, TextAnchor.MiddleCenter);
             CloseButton.fixedWidth = 28f;
             CloseButton.fixedHeight = 26f;
@@ -133,6 +172,9 @@ namespace ChatSounds
             CloseButton.active.background = buttonActive;
 
             Spacer = new GUIStyle { fixedHeight = 24f, margin = new RectOffset(2, 2, 0, 0) };
+
+            Swatch = new GUIStyle { fixedWidth = 18f, fixedHeight = 18f, margin = new RectOffset(6, 2, 3, 3) };
+            White = Make(1, 1, new[] { Color.white });
 
             Check = new GUIStyle { fixedWidth = 18f, fixedHeight = 18f, margin = new RectOffset(0, 0, 3, 3) };
             Texture2D off = CheckBox(false, false);
@@ -156,10 +198,17 @@ namespace ChatSounds
 
             Thumb = new GUIStyle { fixedWidth = 14f, fixedHeight = 16f };
             Texture2D thumb = SliderThumb(ThumbColor);
-            Texture2D thumbHover = SliderThumb(Color.white);
+            Texture2D thumbHover = SliderThumb(AccentHover);
             Thumb.normal.background = thumb;
             Thumb.hover.background = thumbHover;
             Thumb.active.background = thumbHover;
+
+            // Prefer the game's font when its source is available; baked TMP assets may have no source Font.
+            Font font = UiEnvironment.GameFont;
+            if (font != null)
+                foreach (GUIStyle style in new[] { Title, Subtitle, Label, ToggleLabel, SectionTitle, Value, Field,
+                    EditorInput, EditorHex, Hint, Button, SmallButton, Tab, SelectedTab, CloseButton, Logo })
+                    style.font = font;
         }
 
         public void Destroy()
@@ -170,6 +219,34 @@ namespace ChatSounds
                     UnityEngine.Object.Destroy(texture);
             }
             _textures.Clear();
+        }
+
+        internal GUISkin CreateGuiSkin(GUISkin source)
+        {
+            var skin = UnityEngine.Object.Instantiate(source);
+            skin.hideFlags = HideFlags.HideAndDontSave;
+            skin.label = new GUIStyle(Label);
+            skin.button = new GUIStyle(Button) { stretchWidth = true, margin = new RectOffset(2,2,3,3) };
+            skin.box = new GUIStyle(Panel);
+            skin.textField = new GUIStyle(EditorHex);
+            skin.textArea = new GUIStyle(EditorInput);
+            skin.toggle = new GUIStyle(source.toggle);
+            skin.toggle.normal.textColor = skin.toggle.onNormal.textColor = TextColor;
+            skin.toggle.font = UiEnvironment.GameFont;
+            skin.toggle.wordWrap = true;
+            skin.horizontalSlider = new GUIStyle(Slider);
+            skin.horizontalSliderThumb = new GUIStyle(Thumb);
+            skin.verticalScrollbar = new GUIStyle { fixedWidth=12, border=new RectOffset(4,4,4,4) };
+            skin.verticalScrollbar.normal.background = Box(16,16,6,FieldColor,PanelBorder);
+            skin.verticalScrollbarThumb = new GUIStyle { border=new RectOffset(4,4,4,4), fixedWidth=12, padding=new RectOffset(0,0,8,8) };
+            skin.verticalScrollbarThumb.normal.background = Box(16,16,6,ButtonActive,ButtonBorder);
+            skin.verticalScrollbarThumb.hover.background = Box(16,16,6,ButtonHover,AccentColor);
+            skin.verticalScrollbarThumb.active.background = skin.verticalScrollbarThumb.hover.background;
+            skin.verticalScrollbarUpButton = new GUIStyle { fixedHeight=0, fixedWidth=0 };
+            skin.verticalScrollbarDownButton = new GUIStyle { fixedHeight=0, fixedWidth=0 };
+            skin.settings.selectionColor = Rgb(0xF2CCAF,.8f);
+            skin.settings.cursorColor = TextColor;
+            return skin;
         }
 
         static Color Rgb(int rgb, float alpha = 1f)

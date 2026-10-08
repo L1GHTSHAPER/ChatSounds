@@ -30,11 +30,12 @@ namespace ChatSounds
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
     [BepInProcess("OnTogether.exe")]
     [BepInDependency(ChatCommands.CommandApiGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("ontogether.movementplus", BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class Plugin : BaseUnityPlugin
     {
         public const string PluginGuid = "ontogether.chatsounds";
         public const string PluginName = "ChatSounds";
-        public const string PluginVersion = "1.0.2";
+        public const string PluginVersion = "1.1.1";
 
         // The config file is checked this often for edits made in the mod manager while the game is running.
         const float ConfigPollInterval = 1f;
@@ -68,6 +69,7 @@ namespace ChatSounds
 
         GameObject _host;
         SettingsWindow _window;
+        ModDock _dock;
         Harmony _harmony;
         List<string> _keywords = new List<string>();
         // Settings changed in game and not saved yet, with their new values. When the file is edited in the mod
@@ -87,6 +89,8 @@ namespace ChatSounds
             Instance = this;
             Log = Logger;
             BindConfig();
+            ResolveDefaultHotkeyConflict();
+            UiEnvironment.LanguageOverride = () => Lang.Current == Lang.Russian;
             // Bind() has written any missing keys; from now on saves are batched (see SaveDelay).
             Config.SaveOnConfigSet = false;
             _keywords = MentionMatcher.ParseKeywords(Keywords.Value);
@@ -98,8 +102,11 @@ namespace ChatSounds
             Sounds.Init(Path.Combine(Paths.ConfigPath, "ChatSounds"));
             _window = _host.AddComponent<SettingsWindow>();
             _window.enabled = false;
+            _dock = ModDock.Register(PluginName, "sound", _window.Toggle, () => _window.enabled,
+                () => PluginName + " · " + WindowKey.Value, () => GameAccess.Chat != null);
 
             _harmony = new Harmony(PluginGuid);
+            UiEnvironment.InstallInputGuard(_harmony);
             Patch(typeof(MessagePatch), "no sounds will play");
             Patch(typeof(ChatCommandPatch), "the /chatsound command will not work");
             ChatCommands.RegisterWithCommandApi();
@@ -123,9 +130,9 @@ namespace ChatSounds
             Language = Config.Bind("General", "Language", UiLanguage.Auto,
                 "Language of the settings window and of the mod's chat messages. Auto follows the game's language.");
 
-            WindowKey = Config.Bind("Hotkeys", "SettingsWindow", new KeyboardShortcut(KeyCode.F9),
+            WindowKey = Config.Bind("Hotkeys", "SettingsWindow", new KeyboardShortcut(KeyCode.F4),
                 "Opens or closes the settings window (same as typing /chatsound). Ignored while typing.");
-            ToggleKey = Config.Bind("Hotkeys", "ToggleSounds", new KeyboardShortcut(KeyCode.F9, KeyCode.LeftShift),
+            ToggleKey = Config.Bind("Hotkeys", "ToggleSounds", new KeyboardShortcut(KeyCode.F4, KeyCode.LeftShift),
                 "Turns all chat sounds on or off. Ignored while typing.");
 
             Global = new SoundCategory(Config, "Global",
@@ -141,6 +148,24 @@ namespace ChatSounds
                 "More words that count as a mention, separated by commas, e.g. nicknames: mark, markus. " +
                 "Case does not matter; only whole words match.");
             Categories = new[] { Global, Local, Mentions };
+        }
+
+        void ResolveDefaultHotkeyConflict()
+        {
+            bool movementPresent = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("ontogether.movementplus");
+            var window = MigrateLegacyShortcut(WindowKey.Value, movementPresent, false);
+            var toggle = MigrateLegacyShortcut(ToggleKey.Value, movementPresent, true);
+            bool changed = !window.Equals(WindowKey.Value) || !toggle.Equals(ToggleKey.Value);
+            WindowKey.Value = window;
+            ToggleKey.Value = toggle;
+            if (changed) Log.LogInfo("Default F9 conflict resolved: settings F4, sounds LeftShift+F4. Custom shortcuts retained.");
+        }
+
+        internal static KeyboardShortcut MigrateLegacyShortcut(KeyboardShortcut current, bool movementPresent, bool toggle)
+        {
+            var oldDefault = toggle ? new KeyboardShortcut(KeyCode.F9, KeyCode.LeftShift) : new KeyboardShortcut(KeyCode.F9);
+            if (!movementPresent || !current.Equals(oldDefault)) return current;
+            return toggle ? new KeyboardShortcut(KeyCode.F4, KeyCode.LeftShift) : new KeyboardShortcut(KeyCode.F4);
         }
 
         void Patch(Type patchClass, string consequence)
@@ -178,7 +203,7 @@ namespace ChatSounds
             bool window = Pressed(windowKey);
             if (!toggle && !window)
                 return;
-            // Shift+F9 also satisfies a plain F9 shortcut: the shortcut with more modifiers wins.
+            // A modified shortcut also satisfies its plain key: the shortcut with more modifiers wins.
             if (toggle && window)
             {
                 if (toggleKey.Modifiers.Count() >= windowKey.Modifiers.Count())
@@ -477,6 +502,7 @@ namespace ChatSounds
 
         void OnDestroy()
         {
+            if (_dock != null) Destroy(_dock.gameObject);
             Config.SettingChanged -= OnSettingChanged;
             if (_saveAt >= 0f)
                 SaveNow();
