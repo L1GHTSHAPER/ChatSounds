@@ -1,6 +1,6 @@
 {
   "name": "ChatSounds",
-  "version_number": "1.1.1",
+  "version_number": "1.1.2",
   "website_url": "https://github.com/L1GHTSHAPER/ChatSounds",
   "description": "Chat sound notifications for global/local chat and mentions. Built-in, game or custom sounds, volume and playback rules. Cream tabbed settings: F4, /chatsound or grouped side button. English and Russian.",
   "dependencies": [

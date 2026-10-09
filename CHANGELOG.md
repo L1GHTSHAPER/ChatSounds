@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.2
+
+- Aligned mod side buttons with the game's right-hand controls: matching height, left edge and row spacing, with the right cap extending beyond the screen.
+- Reused the game's fill and outline sprites, idle/hover colors and border thickness. Mod icons remain proportionate and use the native icon offset.
+- The button group stays on the right, avoids open panels and hides when there is no safe space. Desktop mode and native UI hiding also hide tooltips and disable pointer input.
+
 ## 1.1.1
 
 - Cream panels, warm brown text, coral accents, rounded controls and game fonts.
